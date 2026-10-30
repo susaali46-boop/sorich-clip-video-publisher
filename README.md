@@ -1,6 +1,6 @@
 # Sorich AI
 
-Sorich AI is a creator publishing workspace in development, planned around a Google Drive → AI-assisted post preparation → TikTok scheduling workflow.
+Sorich AI is a creator publishing workspace in development, planned around a Google Drive â AI-assisted post preparation â TikTok scheduling workflow.
 
 ## Public URLs
 - Website: https://susaali46-boop.github.io/sorich-clip-video-publisher/
@@ -27,3 +27,11 @@ Sorich AI is a creator publishing workspace in development, planned around a Goo
 The authenticated dashboard, secure backend, Drive-to-TikTok transfer, and scheduled publishing are not implemented by GitHub Pages alone. TikTok direct posting may require app review/audit; unaudited apps are restricted. Do not promise public direct publishing until approval and an end-to-end test succeed.
 
 See GATES.md for acceptance criteria and ownership.
+
+
+## Supabase-connected creator dashboard
+- Creator sign-up/sign-in is available at `app.html` using the Supabase publishable key only (safe for browser clients).
+- The app creates a profile and a private workspace after first successful sign-in, then loads workspace-scoped counts and recent records.
+- Row-level security is enforced by the Supabase policies; never expose a Supabase secret/service-role key in this static site.
+- Supabase Auth email confirmation redirects to the current GitHub Pages app URL. Configure the Supabase Auth Site URL and Redirect URLs to include `https://susaali46-boop.github.io/sorich-clip-video-publisher/` before testing sign-up.
+- Video upload, social OAuth, AI generation, billing, and scheduled publishing are not implemented in this frontend milestone.
