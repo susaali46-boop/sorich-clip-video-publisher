@@ -1,4 +1,4 @@
-# Sorich AI — implementation gates
+# Sorich AI â implementation gates
 
 ## Plan and ownership
 - Owner: project owner.
@@ -19,3 +19,17 @@
   EXPECT: No upload or publish action occurs until account authorization and creator posting options are confirmed.
 - CHECK: TikTok review/audit status is known before public direct posting is enabled.
   EXPECT: Until approved, use only posting modes TikTok permits.
+
+
+## Supabase frontend integration milestone
+- Owner: project owner; implementation: Sorich AI project.
+- CHECK: `app.html` loads Supabase JS with the project URL and publishable key only.
+  EXPECT: No service-role/secret key or provider OAuth token appears in static files.
+- CHECK: Sign-up, sign-in, password reset and sign-out handlers are present.
+  EXPECT: Auth errors are shown to the creator and email confirmation is supported.
+- CHECK: First authenticated session creates a profile, workspace and owner membership.
+  EXPECT: Workspace data is scoped by the authenticated user's membership and RLS.
+- CHECK: Dashboard queries are filtered to the current workspace.
+  EXPECT: Only the creator's permitted records are displayed.
+- CHECK: Video upload, provider OAuth, generation and publishing controls remain disabled/unavailable until their server-side integrations are implemented and tested.
+  EXPECT: No fake publishing success or exposure of privileged credentials.
