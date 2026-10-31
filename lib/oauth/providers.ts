@@ -40,7 +40,7 @@ export function authorizationUrl(provider: Provider, state: string, challenge?: 
     return url.toString();
   }
   const url = new URL(`https://www.facebook.com/${GRAPH_VERSION}/dialog/oauth`);
-  url.search = new URLSearchParams({ client_id: required("META_APP_ID"), redirect_uri: callback, response_type: "code", scope: META_SCOPES.join(","), state });
+  url.search = new URLSearchParams({ client_id: required("META_APP_ID"), redirect_uri: callback, response_type: "code", scope: META_SCOPES.join(","), state }).toString();
   return url.toString();
 }
 type TokenExchange = { accessToken: string; refreshToken: string | null; expiresIn: number; refreshExpiresIn?: number; scopes: string[]; tokenType: string; openId?: string };
