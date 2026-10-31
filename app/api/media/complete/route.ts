@@ -11,9 +11,13 @@ export async function POST(req: NextRequest) {
   const { data: { user } } = await db.auth.getUser();
   if (!user) return NextResponse.json({ error: "Sign in required." }, { status: 401 });
   const body = await req.json().catch(() => null) as { path?: string; filename?: string; mimeType?: string; size?: number } | null;
-  if (!body?.path || !body.filename?.trim() || !body.mimeType || !allowed.has(body.mimeType) || !Number.isInteger(body.size) || Number(body.size) <= 0 || Number(body.size) > 100 * 1024 * 1024) {
+  if (!body || typeof body.path !== "string" || !body.path || typeof body.filename !== "string" || !body.filename.trim() ||
+      typeof body.mimeType !== "string" || !allowed.has(body.mimeType) || !Number.isInteger(body.size) ||
+      Number(body.size) <= 0 || Number(body.size) > 100 * 1024 * 1024) {
     return NextResponse.json({ error: "Invalid upload metadata." }, { status: 400 });
   }
+  const filename = body.filename.trim().slice(0, 255);
+  const size = Number(body.size);
   try {
     const workspace = await getWorkspaceId(db, user.id);
     const pathParts = body.path.split("/");
@@ -23,10 +27,10 @@ export async function POST(req: NextRequest) {
     const uploaded = objects?.find((item) => item.name === basename);
     if (listError || !uploaded) return NextResponse.json({ error: "Uploaded file was not found." }, { status: 400 });
     const actualSize = Number(uploaded.metadata?.size || uploaded.metadata?.contentLength || 0);
-    if (actualSize && actualSize !== Number(body.size)) return NextResponse.json({ error: "Uploaded file size does not match the submitted metadata." }, { status: 400 });
+    if (actualSize && actualSize !== size) return NextResponse.json({ error: "Uploaded file size does not match the submitted metadata." }, { status: 400 });
     const { data, error } = await db.from("media_assets").insert({
       workspace_id: workspace, uploaded_by: user.id, storage_bucket: "sorich-media", storage_path: body.path,
-      original_filename: body.filename.slice(0, 255), mime_type: body.mimeType, size_bytes: body.size, status: "ready",
+      original_filename: filename, mime_type: body.mimeType, size_bytes: size, status: "ready",
     }).select("id").single();
     if (error || !data) return NextResponse.json({ error: "Could not save media record." }, { status: 500 });
     return NextResponse.json({ id: data.id }, { headers: { "Cache-Control": "no-store" } });
