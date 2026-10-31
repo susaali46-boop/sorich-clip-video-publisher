@@ -1,16 +1,16 @@
 import Link from "next/link";
-import { signIn, signInWithGoogle } from "@/app/auth/actions";
+import { signIn } from "@/app/auth/actions";
 
 export default async function Login({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ error?: string; reset?: string; password?: string }>;
 }) {
-  const { error } = await searchParams;
+  const { error, reset, password } = await searchParams;
   const messages: Record<string, string> = {
-    invalid: "Email or password is incorrect.",
-    missing: "Enter your email and password.",
-    google: "Google sign-in is not configured yet. Complete the Google provider setup in Supabase, then try again.",
+    invalid: "That email and password combination did not work. Check your details or reset your password.",
+    missing: "Enter your email address and password.",
+    session: "Your sign-in session expired. Please sign in again.",
   };
 
   return (
@@ -25,6 +25,8 @@ export default async function Login({
         <h2>Welcome back</h2>
         <p className="muted">Sign in to continue to your studio.</p>
         {error && <p className="error" role="alert">{messages[error] || "Please check your details and try again."}</p>}
+        {reset === "sent" && <p className="notice" role="status">If an account exists for that email, a password reset link has been sent.</p>}
+        {password === "updated" && <p className="notice" role="status">Your password has been updated. Sign in with your new password.</p>}
         <form action={signIn}>
           <div className="field">
             <label htmlFor="email">Email address</label>
@@ -32,14 +34,13 @@ export default async function Login({
           </div>
           <div className="field">
             <label htmlFor="password">Password</label>
-            <input id="password" name="password" type="password" autoComplete="current-password" required minLength={12} />
+            <input id="password" name="password" type="password" autoComplete="current-password" required />
           </div>
           <button className="btn primary" style={{ width: "100%" }}>Sign in →</button>
         </form>
-        <div className="muted" style={{ textAlign: "center", margin: "18px 0" }}>or</div>
-        <form action={signInWithGoogle}>
-          <button className="btn" style={{ width: "100%" }} type="submit">Continue with Google</button>
-        </form>
+        <p className="muted" style={{ textAlign: "right" }}>
+          <Link href="/forgot-password" style={{ color: "var(--brand)" }}>Forgot password?</Link>
+        </p>
         <p className="muted">New to Sorich? <Link href="/signup" style={{ color: "var(--brand)" }}>Create an account</Link></p>
         <Link href="/" className="muted">← Back to website</Link>
       </section>

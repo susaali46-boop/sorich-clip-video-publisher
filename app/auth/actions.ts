@@ -4,6 +4,8 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { ensureWorkspace } from "@/lib/workspace";
 
+const siteOrigin = () => process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+
 export async function signIn(form: FormData) {
   const email = String(form.get("email") || "").trim().toLowerCase();
   const password = String(form.get("password") || "");
@@ -30,7 +32,7 @@ export async function signUp(form: FormData) {
     password,
     options: {
       data: { display_name: name },
-      emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}/auth/callback`,
+      emailRedirectTo: `${siteOrigin()}/auth/callback`,
     },
   });
   if (error) redirect("/signup?error=signup");
@@ -41,15 +43,37 @@ export async function signUp(form: FormData) {
   redirect("/signup?sent=1");
 }
 
-export async function signInWithGoogle() {
+export async function requestPasswordReset(form: FormData) {
+  const email = String(form.get("email") || "").trim().toLowerCase();
+  if (!email) redirect("/forgot-password?error=missing");
+
   const db = await createClient();
-  const origin = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
-  const { data, error } = await db.auth.signInWithOAuth({
-    provider: "google",
-    options: { redirectTo: `${origin}/auth/callback` },
+  await db.auth.resetPasswordForEmail(email, {
+    redirectTo: `${siteOrigin()}/auth/callback?next=/update-password`,
   });
-  if (error || !data.url) redirect("/login?error=google");
-  redirect(data.url);
+
+  // Use the same response whether or not the account exists.
+  redirect("/forgot-password?sent=1");
+}
+
+export async function updatePassword(form: FormData) {
+  const password = String(form.get("password") || "");
+  const confirmation = String(form.get("confirmation") || "");
+  if (password.length < 12) redirect("/update-password?error=weak");
+  if (password !== confirmation) redirect("/update-password?error=mismatch");
+
+  const db = await createClient();
+  const { data: { user } } = await db.auth.getUser();
+  if (!user) redirect("/login?error=session");
+
+  const { error } = await db.auth.updateUser({ password });
+  if (error) redirect("/update-password?error=failed");
+  redirect("/login?password=updated");
+}
+
+export async function signInWithGoogle() {
+  // Google OAuth is intentionally unavailable until the provider is configured.
+  redirect("/login?error=google");
 }
 
 export async function signOut() {
