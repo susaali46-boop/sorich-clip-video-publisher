@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { currentWorkspace, pkcePair, randomState } from "@/lib/oauth/security";
-import { authorizationUrl } from "@/lib/oauth/providers";
-import { isProvider, missingProviderEnv, PROVIDER_LABELS, providerConfigured } from "@/lib/oauth/providers";
+import { authorizationUrl, isProvider, missingProviderEnv, providerConfigured } from "@/lib/oauth/providers";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export async function GET(request: NextRequest, context: { params: Promise<{ provider: string }> }) {
