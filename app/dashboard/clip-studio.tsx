@@ -89,6 +89,7 @@ export function ClipStudio() {
     setMessage("");
     setMessageIsError(false);
     if (!rightsConfirmed) { setMessage("Please confirm that you own this video or have permission to edit it."); setMessageIsError(true); return; }
+    if (configured !== true) { setMessage("AI clipping is not connected yet. The workspace needs the server-side REKA_API_KEY before clips can be generated. Your output settings are saved in this form and can be selected now."); setMessageIsError(true); return; }
     setBusy(true);
     try {
       const response = await fetch("/api/clips", {
@@ -129,54 +130,54 @@ export function ClipStudio() {
       {configured === false && <p className="notice">The clipping engine is not connected yet. Add <code>REKA_API_KEY</code> to the Vercel Preview environment, then redeploy. The key stays on the server and is never sent to the browser.</p>}
       <form className="clip-form" onSubmit={startClipping}>
         <div className="field wide"><label htmlFor="clip-url">Source YouTube video</label>
-          <input id="clip-url" type="url" required value={videoUrl} onChange={(event) => setVideoUrl(event.target.value)} placeholder="Paste a YouTube video link" disabled={busy || configured !== true} />
+          <input id="clip-url" type="url" required value={videoUrl} onChange={(event) => setVideoUrl(event.target.value)} placeholder="Paste a YouTube video link" disabled={busy} />
           <small>Use a video you own or have permission to edit. Channel and playlist links are not supported.</small>
         </div>
         <div className="field"><label htmlFor="clip-preset">Creative direction</label>
-          <select id="clip-preset" value={preset} onChange={(event) => choosePreset(event.target.value as Preset)} disabled={busy || configured !== true}>
+          <select id="clip-preset" value={preset} onChange={(event) => choosePreset(event.target.value as Preset)} disabled={busy}>
             {Object.entries(PRESETS).map(([key, item]) => <option key={key} value={key}>{item.label}</option>)}
           </select>
         </div>
         <div className="field"><label htmlFor="clip-count">Number of clips</label>
-          <select id="clip-count" value={count} onChange={(event) => setCount(event.target.value)} disabled={busy || configured !== true}>
+          <select id="clip-count" value={count} onChange={(event) => setCount(event.target.value)} disabled={busy}>
             <option value="1">1 clip</option><option value="2">2 clips</option><option value="3">3 clips</option>
           </select>
         </div>
         <div className="field wide"><label htmlFor="clip-prompt">Fine-tune the AI brief</label>
-          <textarea id="clip-prompt" rows={3} maxLength={500} value={prompt} onChange={(event) => setPrompt(event.target.value)} disabled={busy || configured !== true} />
+          <textarea id="clip-prompt" rows={3} maxLength={500} value={prompt} onChange={(event) => setPrompt(event.target.value)} disabled={busy} />
           <small>{prompt.length}/500 characters · Tell the AI which topics, moments or audience to prioritize.</small>
         </div>
         <div className="clip-options-heading"><span className="eyebrow">OUTPUT SETTINGS</span><span className="muted">Customize each generated clip</span></div>
         <div className="field"><label htmlFor="clip-duration">Maximum clip length</label>
-          <select id="clip-duration" value={duration} onChange={(event) => setDuration(event.target.value)} disabled={busy || configured !== true}>
+          <select id="clip-duration" value={duration} onChange={(event) => setDuration(event.target.value)} disabled={busy}>
             <option value="15">Up to 15 seconds</option><option value="30">Up to 30 seconds</option><option value="45">Up to 45 seconds</option><option value="60">Up to 60 seconds</option>
           </select>
         </div>
         <div className="field"><label htmlFor="clip-ratio">Video format</label>
-          <select id="clip-ratio" value={aspectRatio} onChange={(event) => setAspectRatio(event.target.value)} disabled={busy || configured !== true}>
+          <select id="clip-ratio" value={aspectRatio} onChange={(event) => setAspectRatio(event.target.value)} disabled={busy}>
             <option value="9:16">9:16 · Shorts / Reels / TikTok</option><option value="9:16-split">9:16 split screen</option><option value="4:5">4:5 · Portrait feed</option><option value="1:1">1:1 · Square</option><option value="16:9">16:9 · Landscape</option>
           </select>
         </div>
         <div className="field"><label htmlFor="clip-resolution">Resolution</label>
-          <select id="clip-resolution" value={resolution} onChange={(event) => setResolution(event.target.value)} disabled={busy || configured !== true}>
+          <select id="clip-resolution" value={resolution} onChange={(event) => setResolution(event.target.value)} disabled={busy}>
             <option value="720">720p · Standard</option><option value="1080">1080p · HD (may cost more)</option>
           </select>
         </div>
         <div className="field"><label htmlFor="clip-font">Caption font</label>
-          <select id="clip-font" value={captionFont} onChange={(event) => setCaptionFont(event.target.value)} disabled={busy || configured !== true}>
+          <select id="clip-font" value={captionFont} onChange={(event) => setCaptionFont(event.target.value)} disabled={busy}>
             <option value="BebasNeue">Bebas Neue · Bold</option><option value="RobotoCondensed">Roboto Condensed</option><option value="Lato">Lato · Clean</option><option value="Bangers">Bangers · Expressive</option><option value="CaptionFont">Caption Font</option>
           </select>
         </div>
         <div className="field"><label htmlFor="clip-caption-position">Caption placement</label>
-          <select id="clip-caption-position" value={captionPosition} onChange={(event) => setCaptionPosition(event.target.value)} disabled={busy || configured !== true}>
+          <select id="clip-caption-position" value={captionPosition} onChange={(event) => setCaptionPosition(event.target.value)} disabled={busy}>
             <option value="bottom">Bottom</option><option value="middle">Middle</option><option value="top">Top</option>
           </select>
         </div>
         <div className="field clip-color-field"><label htmlFor="clip-caption-color">Caption highlight color</label>
-          <div className="color-control"><input id="clip-caption-color" type="color" value={captionHighlightColor} onChange={(event) => setCaptionHighlightColor(event.target.value)} disabled={busy || configured !== true} /><span>{captionHighlightColor.toUpperCase()}</span></div>
+          <div className="color-control"><input id="clip-caption-color" type="color" value={captionHighlightColor} onChange={(event) => setCaptionHighlightColor(event.target.value)} disabled={busy} /><span>{captionHighlightColor.toUpperCase()}</span></div>
         </div>
-        <label className="clip-rights"><input type="checkbox" checked={rightsConfirmed} onChange={(event) => setRightsConfirmed(event.target.checked)} disabled={busy || configured !== true} /> I own this video or have permission to make and use clips from it.</label>
-        <div className="clip-submit"><button className="btn primary" disabled={busy || configured !== true || !videoUrl.trim() || !rightsConfirmed}>{busy ? "Starting…" : "✦ Generate clips"}</button><span className="muted">1–3 clips · Subtitles included · Review before publishing</span></div>
+        <label className="clip-rights"><input type="checkbox" checked={rightsConfirmed} onChange={(event) => setRightsConfirmed(event.target.checked)} disabled={busy} /> I own this video or have permission to make and use clips from it.</label>
+        <div className="clip-submit"><button className="btn primary" disabled={busy}>{busy ? "Starting…" : "✦ Generate clips"}</button><span className="muted">1–3 clips · Subtitles included · Review before publishing</span></div>
       </form>
       {message && <p className={messageIsError ? "error" : "notice"} role={messageIsError ? "alert" : "status"}>{message}</p>}
       <div className="clip-jobs">
