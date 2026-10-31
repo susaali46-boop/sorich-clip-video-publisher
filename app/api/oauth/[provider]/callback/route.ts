@@ -29,7 +29,7 @@ export async function GET(request: NextRequest, context: { params: Promise<{ pro
     const identities = await exchangeAndIdentify(provider, code, verifier);
     let saved = 0;
     for (const identity of identities) {
-      await saveConnectedAccount({ db: workspace.db, workspaceId: workspace.workspaceId, userId: workspace.user.id, provider, providerAccountId: identity.providerAccountId, accountName: identity.accountName, accountHandle: identity.accountHandle, scopes: identity.scopes, expiresAt: tokenExpiry(identity.expiresIn), refreshExpiresAt: tokenExpiry(identity.refreshExpiresIn), payload: { accessToken: identity.accessToken, refreshToken: identity.refreshToken, tokenType: "Bearer", obtainedAt: Date.now(), providerData: identity.providerData }, metadata: identity.metadata });
+      await saveConnectedAccount({ db: workspace.db, workspaceId: workspace.workspaceId, userId: workspace.user.id, provider: identity.accountProvider || provider, providerAccountId: identity.providerAccountId, accountName: identity.accountName, accountHandle: identity.accountHandle, scopes: identity.scopes, expiresAt: tokenExpiry(identity.expiresIn), refreshExpiresAt: tokenExpiry(identity.refreshExpiresIn), payload: { accessToken: identity.accessToken, refreshToken: identity.refreshToken, tokenType: "Bearer", obtainedAt: Date.now(), providerData: identity.providerData }, metadata: identity.metadata });
       saved++;
     }
     return finish(request, { connection: "connected", provider, count: String(saved) });
