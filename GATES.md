@@ -1,35 +1,28 @@
-# Sorich AI â implementation gates
+# Sorich Studio implementation gates
 
 ## Plan and ownership
 - Owner: project owner.
-- Current phase: public developer-review website and legal information pages.
-- This phase does not implement OAuth, video transfer, scheduled jobs, or TikTok publishing; those require an authenticated backend and an active TikTok connection.
-- Next phase: secure OAuth/token handling, Drive file selection/transfer, scheduler, TikTok upload/publish status, and operational logs.
+- Implementation: Sorich AI project.
+- Phase: public website and authenticated creator workspace visual/UX rebuild.
+- Backend integration phase remains separate: secure Google Drive OAuth and transfer, TikTok OAuth/upload/publish, AI generation, and durable scheduling.
 
 ## Acceptance criteria
-- CHECK: index.html exists at the GitHub Pages root.
-  EXPECT: It identifies Sorich AI and accurately describes the planned Drive-to-TikTok workflow without claiming unfinished features are live.
-- CHECK: terms.html exists and is linked from the home page.
-  EXPECT: Terms cover permitted use, content rights, third-party services, posting responsibility, availability, and account security.
-- CHECK: privacy-policy.html exists and is linked from the home page.
-  EXPECT: Privacy disclosures cover account authorization, Drive video processing, TikTok publishing, service providers, retention, revocation, and contact route without unsupported security claims.
-- CHECK: GitHub Pages configuration is verified.
-  EXPECT: Public HTTPS URL is identified and all pages use relative navigation links.
-- CHECK: TikTok connection is active before any live TikTok API test.
-  EXPECT: No upload or publish action occurs until account authorization and creator posting options are confirmed.
-- CHECK: TikTok review/audit status is known before public direct posting is enabled.
-  EXPECT: Until approved, use only posting modes TikTok permits.
+- CHECK: index.html loads from the GitHub Pages root.
+  EXPECT: responsive editorial landing page, no broken relative links, clear accurate feature claims.
+- CHECK: app.html loads and imports Supabase JS v2.
+  EXPECT: existing email signup, sign-in, password reset, sign-out and workspace creation flows remain intact.
+- CHECK: authenticated dashboard queries existing workspace-scoped tables.
+  EXPECT: counts and recent asset/post records display from Supabase; empty/error states remain honest.
+- CHECK: navigation links to overview, library, calendar, connections, terms and privacy.
+  EXPECT: no dead links; unavailable integrations are labelled as setup-required, not falsely shown as connected.
+- CHECK: static frontend source is reviewed for privileged keys.
+  EXPECT: only the existing Supabase publishable key is present; no service-role key, OAuth secret or access token is committed.
+- CHECK: mobile viewport at 375px and desktop viewport at 1440px.
+  EXPECT: no horizontal overflow; sidebar and dashboard collapse cleanly.
+- CHECK: Google Drive and TikTok publishing controls.
+  EXPECT: no upload, scheduling or public-post success is claimed until secure server-side integration and provider approval are implemented and tested.
 
-
-## Supabase frontend integration milestone
-- Owner: project owner; implementation: Sorich AI project.
-- CHECK: `app.html` loads Supabase JS with the project URL and publishable key only.
-  EXPECT: No service-role/secret key or provider OAuth token appears in static files.
-- CHECK: Sign-up, sign-in, password reset and sign-out handlers are present.
-  EXPECT: Auth errors are shown to the creator and email confirmation is supported.
-- CHECK: First authenticated session creates a profile, workspace and owner membership.
-  EXPECT: Workspace data is scoped by the authenticated user's membership and RLS.
-- CHECK: Dashboard queries are filtered to the current workspace.
-  EXPECT: Only the creator's permitted records are displayed.
-- CHECK: Video upload, provider OAuth, generation and publishing controls remain disabled/unavailable until their server-side integrations are implemented and tested.
-  EXPECT: No fake publishing success or exposure of privileged credentials.
+## Ownership and next phase
+- Frontend: public site and Supabase-authenticated workspace.
+- Backend: server-side OAuth callbacks, encrypted token storage, Drive transfer, TikTok API calls, scheduler/queue, idempotency and audit logs.
+- Provider configuration: Google OAuth scopes and TikTok Content Posting API review/audit are project-owner responsibilities.
