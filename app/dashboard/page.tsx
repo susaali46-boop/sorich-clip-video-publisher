@@ -6,6 +6,7 @@ import { signOut } from "@/app/auth/actions";
 import { createPost, deletePost } from "@/app/dashboard/actions";
 import { UploadForm } from "./upload-form";
 import { ClipStudio } from "./clip-studio";
+import { ConnectionsManager } from "./connections-manager";
 
 export const dynamic = "force-dynamic";
 
@@ -61,10 +62,7 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
           <section className="card" id="library"><span className="eyebrow">YOUR CONTENT</span><h2>Video library</h2><p className="muted">Upload original video files to your private workspace.</p><UploadForm />
             {assets.length ? assets.map((item) => <div className="row" key={item.id}><div><b>{item.original_filename || "Untitled video"}</b><small>{item.mime_type} · {item.size_bytes ? Math.round(item.size_bytes / 1048576) + " MB" : "—"} · {date(item.created_at)}</small></div><span className="badge green">{item.status}</span></div>) : <p className="notice">Your library is empty. Upload a video to begin.</p>}
           </section>
-          <section className="card" id="connections"><span className="eyebrow">PUBLISHING ACCOUNTS</span><h2>Connections</h2><p className="muted">Provider OAuth is not active yet.</p>
-            {["YouTube", "TikTok", "Instagram", "Facebook", "Pinterest", "LinkedIn"].map((name) => { const item = accounts.find((account) => account.provider.toLowerCase() === name.toLowerCase()); return <div className="row" key={name}><div><b>{name}</b><small>{item?.account_handle || item?.account_name || "Official API connection"}</small></div><span className="badge">{item?.status || "Setup needed"}</span></div>; })}
-            <p className="notice">No social connection or publishing action is enabled until official OAuth and provider permissions are configured.</p>
-          </section>
+          <ConnectionsManager />
           <section className="card wide" id="composer"><span className="eyebrow">PREPARE YOUR NEXT POST</span><h2>Post composer</h2><p className="muted">Save drafts and plan content. Nothing is automatically published.</p>
             <form action={createPost} className="composer"><div className="field wide"><label htmlFor="title">Post title</label><input id="title" name="title" maxLength={120} placeholder="A clear working title" /></div><div className="field wide"><label htmlFor="caption">Caption</label><textarea id="caption" name="caption" maxLength={5000} placeholder="Write your caption…" /></div><div className="field"><label htmlFor="hashtags">Hashtags</label><input id="hashtags" name="hashtags" placeholder="#creator #shorts" /></div><div className="field"><label htmlFor="planned_at">Planned date</label><input id="planned_at" name="planned_at" type="datetime-local" /></div><div className="wide"><button className="btn primary">Save draft</button></div></form>
           </section>

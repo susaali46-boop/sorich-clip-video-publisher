@@ -161,3 +161,25 @@ small{font-size:11px;color:var(--muted)}
 .clip-result-body p{overflow-wrap:anywhere}
 .clip-actions .btn{min-height:36px}
 @media(max-width:600px){.clip-options-heading{align-items:flex-start;flex-direction:column}.clip-color-field .color-control{width:100%}}
+
+/* Social OAuth connections */
+.connections-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:18px}
+.connections-head h2{margin-bottom:6px}
+.oauth-provider-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.oauth-provider{display:grid;grid-template-columns:42px minmax(0,1fr) auto;align-items:center;gap:10px;padding:14px;border:1px solid var(--line);border-radius:13px;background:#fff}
+.oauth-mark{display:grid;place-items:center;width:42px;height:42px;border-radius:12px;background:#f0edff;color:#5b48c9;font-size:22px;font-weight:850}
+.oauth-mark.youtube{background:#fff0ef;color:#dc2626}.oauth-mark.tiktok{background:#edf8f8;color:#101820}.oauth-mark.instagram{background:#fff0f6;color:#bd327b}.oauth-mark.facebook{background:#edf4ff;color:#1877f2}
+.oauth-provider-info,.oauth-account-info{display:grid;gap:3px;min-width:0}.oauth-provider-info b,.oauth-account-info b{font-size:13px}.oauth-provider-info small,.oauth-account-info small{font-size:10px;color:var(--muted);overflow-wrap:anywhere}
+.oauth-provider>.btn{grid-column:2/-1;justify-self:start;min-height:34px;font-size:11px}
+.oauth-missing{grid-column:2/-1;overflow-wrap:anywhere;color:#9a5b16;font-size:10px}
+.connections-list-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:24px 0 12px;padding-top:18px;border-top:1px solid var(--line)}
+.connections-list-head h3{margin:0;font-size:14px}
+.oauth-empty{padding:20px;border:1px dashed var(--line);border-radius:12px;text-align:center}
+.oauth-empty p{margin:6px 0 0;font-size:11px}
+.oauth-account-list{display:grid;gap:8px}
+.oauth-account{display:grid;grid-template-columns:36px minmax(0,1fr) auto auto;align-items:center;gap:11px;padding:12px;border:1px solid var(--line);border-radius:12px}
+.oauth-mark.small{width:34px;height:34px;border-radius:10px;font-size:17px}
+.oauth-account-actions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.oauth-account-actions .btn{min-height:32px;padding:6px 9px;font-size:10px}
+.oauth-security-note{margin:16px 0 0;padding:12px 14px;border-radius:10px;background:#f5f6fa;color:#667085;font-size:10px;line-height:1.6}
+@media(max-width:760px){.oauth-provider-grid{grid-template-columns:1fr}.oauth-account{grid-template-columns:34px minmax(0,1fr) auto}.oauth-account-actions{grid-column:2/-1;justify-content:flex-start}.connections-head{display:block}.connections-head>.badge{margin-top:8px}}
