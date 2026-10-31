@@ -36,7 +36,7 @@ export function authorizationUrl(provider: Provider, state: string, challenge?: 
   }
   if (provider === "tiktok") {
     const url = new URL("https://www.tiktok.com/v2/auth/authorize/");
-    url.search = new URLSearchParams({ client_key: required("TIKTOK_CLIENT_KEY"), redirect_uri: callback, response_type: "code", scope: TIKTOK_SCOPES.join(","), state });
+    url.search = new URLSearchParams({ client_key: required("TIKTOK_CLIENT_KEY"), redirect_uri: callback, response_type: "code", scope: TIKTOK_SCOPES.join(","), state }).toString();
     return url.toString();
   }
   const url = new URL(`https://www.facebook.com/${GRAPH_VERSION}/dialog/oauth`);
