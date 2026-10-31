@@ -1,17 +1,7 @@
 # Security policy
 
-## Supported deployment
+Do not commit API secrets, service-role keys, OAuth client secrets, access tokens or passwords. Report vulnerabilities privately to the repository owner rather than opening a public issue.
 
-The public GitHub Pages site is a static frontend and is not an approved location for credentials, OAuth tokens, or privileged server operations. Production publishing must run through the trusted backend described in `docs/SECURITY-ARCHITECTURE.md`.
+Sorich uses Supabase Auth for password verification and password hashing. The application does not store passwords. Auth is handled through server-side Supabase SSR cookies with HttpOnly, Secure in production, SameSite=Lax and Path=/ options. The browser does not receive a service-role key.
 
-## Reporting a vulnerability
-
-Do not publish secrets, personal data, or exploit details in a public issue. Use GitHub's private vulnerability reporting feature if enabled for this repository, or contact the repository owner through a private channel. Include the affected page/component, impact, and safe reproduction steps. Do not access data belonging to other users.
-
-## Credential exposure
-
-If a credential is exposed, revoke/rotate it at the provider immediately. Removing it from the latest commit does not invalidate the credential or erase repository history.
-
-## Security commitments
-
-Security fixes are prioritized. Production release requires passing the security gates documented in `GATES.md`. This policy does not claim that the current static prototype is production-secure.
+Production release requires HTTPS, verified cookie behavior, cross-workspace RLS tests, private storage checks, dependency scanning and a successful staging restore exercise. GitHub Pages is not a supported host for authenticated server routes.

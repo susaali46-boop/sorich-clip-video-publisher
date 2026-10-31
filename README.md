@@ -1,28 +1,30 @@
 # Sorich Studio
 
-Sorich Studio is a multi-platform content operations workspace for creating, preparing, scheduling, publishing, and analyzing short-form video across social platforms.
+A creator workspace for private video organization, post drafts and publishing operations.
 
-## Public pages
+## Stack
+- Next.js App Router on a server-capable host (Vercel recommended).
+- Supabase Auth via `@supabase/ssr`; auth cookies are written server-side with HttpOnly, Secure in production and SameSite=Lax options.
+- Existing Supabase workspace tables and row-level security.
+- Private `sorich-media` Storage bucket with workspace-folder policies and signed upload URLs.
 
-- Website: https://susaali46-boop.github.io/sorich-clip-video-publisher/
-- Creator workspace: https://susaali46-boop.github.io/sorich-clip-video-publisher/app.html
-- Terms: https://susaali46-boop.github.io/sorich-clip-video-publisher/terms.html
-- Privacy: https://susaali46-boop.github.io/sorich-clip-video-publisher/privacy-policy.html
+## Setup
+1. Copy `.env.example` to `.env.local`.
+2. Set `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, and `NEXT_PUBLIC_SITE_URL`.
+3. Run `npm install`, then `npm run typecheck`, `npm run lint`, `npm run build`.
+4. Deploy to Vercel or another Node.js host. Configure Supabase Auth Site URL and redirect allow-list for the deployed origin and `/auth/callback`.
 
-## Product direction
+## Implemented in this branch
+- Server-rendered landing, sign-up, sign-in and protected dashboard.
+- Supabase SSR cookie session handling and middleware refresh.
+- Private workspace bootstrap and workspace-scoped data reads/writes.
+- Private video upload using signed URLs (MP4, MOV, WebM; max 100 MB).
+- Post draft composer with title, caption, hashtags and optional planned date.
+- Provider connection status display.
+- Security headers, CSP nonce, CI checks.
 
-One workspace for YouTube Shorts, TikTok, Instagram Reels, Facebook Reels, and additional destinations where official APIs permit the required capability. A video can be adapted into destination-specific posts, reviewed, approved, scheduled, published, and analyzed from one place.
+## Not enabled yet
+Social provider OAuth/publishing workers, AI generation, analytics ingestion, scheduled publishing, and subscription billing. These must not be presented as working until provider credentials, approvals, implementation and tests exist. Billing is intentionally not activated; the app is structured to add plans later.
 
-See [docs/PLATFORM-ROADMAP.md](docs/PLATFORM-ROADMAP.md) for product scope and [docs/SECURITY-ARCHITECTURE.md](docs/SECURITY-ARCHITECTURE.md) for the required security model.
-
-## Current implementation status
-
-The deployed site is a static GitHub Pages frontend with a Supabase browser-auth foundation. It is a prototype, not a complete publishing SaaS. The current frontend does not implement secure provider OAuth, private media transfer, AI generation, a durable scheduler, or confirmed publishing/analytics integrations.
-
-The browser may contain only public Supabase project configuration and a publishable/anon key protected by correct database RLS policies. Never add a Supabase service-role key, OAuth client secret, provider token, encryption key, or signing secret to frontend code or this repository.
-
-## Security and deployment
-
-GitHub Pages is not a trusted backend and cannot by itself provide HttpOnly session cookies or protect server-side secrets. Production requires a separately deployed HTTPS API/worker layer, server-managed sessions, private storage, encrypted provider tokens, strict workspace authorization, RLS, audit logging, and security tests.
-
-Read [SECURITY.md](SECURITY.md) and the security release gates in [GATES.md](GATES.md). Do not connect real publishing accounts or enable unattended publishing before those gates pass.
+## Security
+Supabase Auth handles password hashing; the app never stores passwords. No service-role key is used in client code or committed. See `SECURITY.md` and `docs/SECURITY-ARCHITECTURE.md`.
