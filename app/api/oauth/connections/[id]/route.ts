@@ -15,9 +15,21 @@ export async function DELETE(_request: NextRequest, context: { params: Promise<{
         const stored = await loadCredential(id, workspaceId);
         await revokeProviderToken(account.provider, { accessToken: stored.tokens.accessToken });
       }
-    } catch { /* Continue removing local secrets even if the provider has already revoked access. */ }
+    } catch { /* Continue local deletion even if provider access has already expired. */ }
     const { error: credentialError } = await admin.from("oauth_credentials").delete().eq("social_account_id", id).eq("workspace_id", workspaceId);
     if (credentialError) return NextResponse.json({ error: "Could not remove encrypted credentials. Please retry." }, { status: 500 });
+
+    // YouTube API Data tied to this authorization is cleared when the user disconnects.
+    const { error: apiDataError } = await db.from("publishing_posts").update({
+      provider_post_id: null,
+      provider_response: {},
+      published_at: null,
+      status: "draft",
+      error_message: null,
+      updated_at: new Date().toISOString(),
+    }).eq("social_account_id", id).eq("workspace_id", workspaceId);
+    if (apiDataError) return NextResponse.json({ error: "Could not clear provider data. Please retry before disconnecting." }, { status: 500 });
+
     const { error } = await db.from("social_accounts").delete().eq("id", id).eq("workspace_id", workspaceId);
     if (error) return NextResponse.json({ error: "Credentials were removed, but the account record could not be deleted. Contact support." }, { status: 500 });
     return NextResponse.json({ success: true });

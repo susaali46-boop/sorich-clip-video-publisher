@@ -9,11 +9,14 @@ export async function GET(request: NextRequest, context: { params: Promise<{ pro
   if (!isProvider(raw)) return NextResponse.json({ error: "Unsupported social platform." }, { status: 404 });
   try {
     await currentWorkspace(true);
-    if (!providerConfigured(raw)) return NextResponse.redirect(new URL(`/dashboard?connection=missing_config&provider=${raw}&missing=${encodeURIComponent(missingProviderEnv(raw).join(","))}`, request.url));
+    const store = await cookies();
+    if (raw === "youtube" && store.get("sorich_youtube_terms_v1")?.value !== "accepted") {
+      return NextResponse.redirect(new URL("/youtube-consent", request.url));
+    }
+    if (!providerConfigured(raw)) return NextResponse.redirect(new URL(`/dashboard?connection=missing_config&provider=${raw}&missing=${encodeURIComponent(missingProviderEnv(raw).join(", "))}`, request.url));
     const state = randomState();
     const pkce = raw === "youtube" ? pkcePair() : null;
     const url = authorizationUrl(raw, state, pkce?.challenge);
-    const store = await cookies();
     const options = { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax" as const, path: `/api/oauth/${raw}/callback`, maxAge: 600 };
     store.set(`sorich_oauth_state_${raw}`, state, options);
     if (pkce) store.set(`sorich_oauth_verifier_${raw}`, pkce.verifier, options);

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 type Asset = { id: string; original_filename: string | null; mime_type: string | null; size_bytes: number | null; created_at: string };
 type Account = { id: string; provider_account_id: string; account_name: string | null; account_handle: string | null; scopes: string[] };
@@ -25,7 +25,7 @@ export function YouTubePublisher() {
   const [result, setResult] = useState<UploadResult | null>(null);
   const [status, setStatus] = useState<VideoStatus | null>(null);
 
-  async function loadOptions() {
+  const loadOptions = useCallback(async () => {
     setLoading(true);
     try {
       const response = await fetch("/api/youtube/options", { cache: "no-store" });
@@ -40,9 +40,9 @@ export function YouTubePublisher() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [assetId, accountId]);
 
-  useEffect(() => { void loadOptions(); }, []);
+  useEffect(() => { void loadOptions(); }, [loadOptions]);
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -98,7 +98,7 @@ export function YouTubePublisher() {
     <p className="muted">Choose a video already stored in your private library, review its details, then approve the upload. Nothing is sent to YouTube until you press the upload button and confirm.</p>
     {message && <p className="notice" role="status">{message}</p>}
     {loading ? <p className="muted">Loading your library and connected channels…</p> : <>
-      {accounts.length === 0 ? <div className="notice"><b>No YouTube channel connected.</b><p>Connect your channel first in <a href="/dashboard#connections">Social connections</a>. The connection must include YouTube upload permission.</p><a className="btn primary" href="/api/oauth/youtube">Connect YouTube</a></div> : null}
+      {accounts.length === 0 ? <div className="notice"><b>No YouTube channel connected.</b><p>Connect your channel first in <a href="/dashboard#connections">Social connections</a>. The connection must include YouTube upload permission.</p><button className="btn primary" type="button" onClick={() => window.location.assign("/api/oauth/youtube")}>Connect YouTube</button></div> : null}
       {assets.length === 0 ? <div className="notice"><b>Your private video library is empty.</b><p>Upload an original MP4, MOV or WebM file in the Video library section first.</p><a className="btn" href="/dashboard#library">Open video library</a></div> : null}
       {accounts.length > 0 && assets.length > 0 ? <form className="composer" onSubmit={submit}>
         <div className="field wide"><label htmlFor="yt-account">YouTube channel</label><select id="yt-account" value={accountId} onChange={(e) => setAccountId(e.target.value)} required>{accounts.map((account) => <option key={account.id} value={account.id}>{account.account_name || account.provider_account_id} {account.account_handle ? `· ${account.account_handle}` : ""}</option>)}</select></div>
