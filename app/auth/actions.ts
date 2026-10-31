@@ -5,11 +5,12 @@ import { createClient } from "@/lib/supabase/server";
 import { ensureWorkspace } from "@/lib/workspace";
 
 const siteOrigin = () => process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+const validEmail = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 
 export async function signIn(form: FormData) {
   const email = String(form.get("email") || "").trim().toLowerCase();
   const password = String(form.get("password") || "");
-  if (!email || !password) redirect("/login?error=missing");
+  if (!validEmail(email) || !password) redirect("/login?error=missing");
 
   const db = await createClient();
   const { error } = await db.auth.signInWithPassword({ email, password });
@@ -24,7 +25,10 @@ export async function signUp(form: FormData) {
   const name = String(form.get("name") || "").trim().slice(0, 80);
   const email = String(form.get("email") || "").trim().toLowerCase();
   const password = String(form.get("password") || "");
-  if (!name || !email || password.length < 12) redirect("/signup?error=invalid");
+
+  if (name.length < 2) redirect("/signup?error=name");
+  if (!validEmail(email)) redirect("/signup?error=email");
+  if (password.length < 12) redirect("/signup?error=password");
 
   const db = await createClient();
   const { data, error } = await db.auth.signUp({
@@ -45,14 +49,12 @@ export async function signUp(form: FormData) {
 
 export async function requestPasswordReset(form: FormData) {
   const email = String(form.get("email") || "").trim().toLowerCase();
-  if (!email) redirect("/forgot-password?error=missing");
+  if (!validEmail(email)) redirect("/forgot-password?error=missing");
 
   const db = await createClient();
   await db.auth.resetPasswordForEmail(email, {
     redirectTo: `${siteOrigin()}/auth/callback?next=/update-password`,
   });
-
-  // Use the same response whether or not the account exists.
   redirect("/forgot-password?sent=1");
 }
 
@@ -72,7 +74,6 @@ export async function updatePassword(form: FormData) {
 }
 
 export async function signInWithGoogle() {
-  // Google OAuth is intentionally unavailable until the provider is configured.
   redirect("/login?error=google");
 }
 
