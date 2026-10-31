@@ -50,14 +50,7 @@ function safeClip(item: unknown) {
 function toJob(row: Record<string, unknown>) {
   const input = (row.input || {}) as Record<string, unknown>;
   const output = (row.output || {}) as Record<string, unknown>;
-  return {
-    id: row.id,
-    status: row.status,
-    sourceUrl: input.source_url || "",
-    errorMessage: row.error_message || null,
-    clips: Array.isArray(output.clips) ? output.clips : [],
-    createdAt: row.created_at,
-  };
+  return { id: row.id, status: row.status, sourceUrl: input.source_url || "", errorMessage: row.error_message || null, clips: Array.isArray(output.clips) ? output.clips : [], createdAt: row.created_at };
 }
 
 export async function GET() {
@@ -80,9 +73,13 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   const origin = req.headers.get("origin");
   if (origin && origin !== new URL(req.url).origin) return NextResponse.json({ error: "Invalid request origin." }, { status: 403 });
+
+  const db = await createClient();
+  const { data: { user } } = await db.auth.getUser();
+  if (!user) return NextResponse.json({ error: "Sign in required." }, { status: 401 });
+
   const apiKey = process.env.REKA_API_KEY;
   if (!apiKey) return NextResponse.json({ error: "AI clipping is not configured yet. The server is missing REKA_API_KEY." }, { status: 503 });
-
   const body = await req.json().catch(() => null) as { videoUrl?: unknown; prompt?: unknown; numGenerations?: unknown; rightsConfirmed?: unknown } | null;
   const sourceUrl = parseYouTubeUrl(body?.videoUrl);
   if (!sourceUrl) return NextResponse.json({ error: "Enter a valid YouTube video link (not a channel or playlist)." }, { status: 400 });
@@ -90,10 +87,6 @@ export async function POST(req: NextRequest) {
   const numGenerations = Number(body?.numGenerations ?? 3);
   if (!Number.isInteger(numGenerations) || numGenerations < 1 || numGenerations > 3) return NextResponse.json({ error: "Choose between 1 and 3 clips." }, { status: 400 });
   const prompt = typeof body?.prompt === "string" ? body.prompt.trim().slice(0, MAX_PROMPT_LENGTH) : "";
-
-  const db = await createClient();
-  const { data: { user } } = await db.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Sign in required." }, { status: 401 });
 
   try {
     const workspaceId = await getWorkspaceId(db, user.id);
@@ -107,7 +100,10 @@ export async function POST(req: NextRequest) {
       prompt: prompt || null, input: { provider: "reka", source_url: sourceUrl, num_generations: numGenerations },
       output: {}, status: "queued",
     }).select("id,status,input,output,error_message,created_at").single();
-    if (insertError || !job) return NextResponse.json({ error: "Could not create a clipping job." }, { status: 500 });
+    if (insertError || !job) {
+      if (insertError?.code === "23505") return NextResponse.json({ error: "A clipping job is already running in this workspace." }, { status: 409 });
+      return NextResponse.json({ error: "Could not create a clipping job." }, { status: 500 });
+    }
 
     let providerResponse: Response;
     try {
@@ -124,13 +120,13 @@ export async function POST(req: NextRequest) {
         cache: "no-store",
       });
     } catch {
-      await db.from("generation_jobs").update({ status: "failed", error_message: "The clipping provider could not be reached. Please try again." }).eq("id", job.id).eq("workspace_id", workspaceId);
+      await db.from("generation_jobs").update({ status: "failed", error_message: "The clipping provider could not be reached. Please try again.", completed_at: new Date().toISOString() }).eq("id", job.id).eq("workspace_id", workspaceId);
       return NextResponse.json({ error: "The clipping provider could not be reached. Please try again." }, { status: 502 });
     }
 
     const providerData = await providerResponse.json().catch(() => ({})) as Record<string, unknown>;
     if (!providerResponse.ok || typeof providerData.id !== "string") {
-      await db.from("generation_jobs").update({ status: "failed", error_message: "The clipping provider rejected this video or request." }).eq("id", job.id).eq("workspace_id", workspaceId);
+      await db.from("generation_jobs").update({ status: "failed", error_message: "The clipping provider rejected this video or request.", completed_at: new Date().toISOString() }).eq("id", job.id).eq("workspace_id", workspaceId);
       return NextResponse.json({ error: "The clipping provider rejected this video or request. Check the link and try another video." }, { status: 502 });
     }
 
