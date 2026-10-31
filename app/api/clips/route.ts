@@ -26,27 +26,6 @@ function parseYouTubeUrl(value: unknown): string | null {
   }
 }
 
-function safeClip(item: unknown) {
-  if (!item || typeof item !== "object") return null;
-  const value = item as Record<string, unknown>;
-  let videoUrl = "";
-  try {
-    const parsed = new URL(String(value.video_url || ""));
-    if (parsed.protocol !== "https:") return null;
-    videoUrl = parsed.toString();
-  } catch { return null; }
-  const hashtags = Array.isArray(value.hashtags)
-    ? value.hashtags.filter((tag): tag is string => typeof tag === "string").slice(0, 20).map((tag) => tag.slice(0, 60))
-    : [];
-  return {
-    title: typeof value.title === "string" ? value.title.slice(0, 160) : "Generated clip",
-    video_url: videoUrl,
-    caption: typeof value.caption === "string" ? value.caption.slice(0, 2000) : "",
-    hashtags,
-    ai_score: typeof value.ai_score === "number" ? value.ai_score : undefined,
-  };
-}
-
 function toJob(row: Record<string, unknown>) {
   const input = (row.input || {}) as Record<string, unknown>;
   const output = (row.output || {}) as Record<string, unknown>;
