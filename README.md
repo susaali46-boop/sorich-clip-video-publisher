@@ -20,11 +20,13 @@ A creator workspace for private video organization, post drafts and publishing o
 - Private workspace bootstrap and workspace-scoped data reads/writes.
 - Private video upload using signed URLs (MP4, MOV, WebM; max 100 MB).
 - Post draft composer with title, caption, hashtags and optional planned date.
+- AI clip generation for authorized YouTube videos through the server-side Reka Clip API, including creative direction presets, clip count, duration, aspect ratio, resolution and caption styling.
+- Persistent, workspace-scoped clip jobs with polling, playable results, copyable post details and direct clip links.
 - Provider connection status display.
 - Security headers, CSP nonce, CI checks.
 
 ## Not enabled yet
-Social provider OAuth/publishing workers, AI generation, analytics ingestion, scheduled publishing, and subscription billing. These must not be presented as working until provider credentials, approvals, implementation and tests exist. Billing is intentionally not activated; the app is structured to add plans later.
+Social provider OAuth/publishing workers, analytics ingestion, scheduled publishing, and subscription billing. AI clipping requires a server-side `REKA_API_KEY` and provider usage allowance; it remains unavailable until configured and verified. These other capabilities must not be presented as working until provider credentials, approvals, implementation and tests exist. Billing is intentionally not activated; the app is structured to add plans later.
 
 ## Security
 Supabase Auth handles password hashing; the app never stores passwords. No service-role key is used in client code or committed. See `SECURITY.md` and `docs/SECURITY-ARCHITECTURE.md`.

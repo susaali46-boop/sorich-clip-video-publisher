@@ -4,6 +4,10 @@ import { getWorkspaceId } from "@/lib/workspace";
 
 const REKA_BASE = "https://vision-agent.api.reka.ai";
 const MAX_PROMPT_LENGTH = 500;
+const ASPECT_RATIOS = ["9:16", "9:16-split", "1:1", "4:5", "16:9"] as const;
+const CAPTION_FONTS = ["BebasNeue", "Bangers", "RobotoCondensed", "Lato", "CaptionFont"] as const;
+const CAPTION_POSITIONS = ["top", "middle", "bottom"] as const;
+const HEX_COLOR = /^#[0-9a-fA-F]{6}$/;
 
 function parseYouTubeUrl(value: unknown): string | null {
   if (typeof value !== "string" || value.length > 500) return null;
@@ -59,13 +63,24 @@ export async function POST(req: NextRequest) {
 
   const apiKey = process.env.REKA_API_KEY;
   if (!apiKey) return NextResponse.json({ error: "AI clipping is not configured yet. The server is missing REKA_API_KEY." }, { status: 503 });
-  const body = await req.json().catch(() => null) as { videoUrl?: unknown; prompt?: unknown; numGenerations?: unknown; rightsConfirmed?: unknown } | null;
+  const body = await req.json().catch(() => null) as {
+    videoUrl?: unknown; prompt?: unknown; numGenerations?: unknown; rightsConfirmed?: unknown;
+    aspectRatio?: unknown; maxDurationSeconds?: unknown; resolution?: unknown;
+    captionFont?: unknown; captionPosition?: unknown; captionHighlightColor?: unknown;
+  } | null;
   const sourceUrl = parseYouTubeUrl(body?.videoUrl);
   if (!sourceUrl) return NextResponse.json({ error: "Enter a valid YouTube video link (not a channel or playlist)." }, { status: 400 });
   if (body?.rightsConfirmed !== true) return NextResponse.json({ error: "Confirm that you own this video or have permission to edit it." }, { status: 400 });
   const numGenerations = Number(body?.numGenerations ?? 3);
   if (!Number.isInteger(numGenerations) || numGenerations < 1 || numGenerations > 3) return NextResponse.json({ error: "Choose between 1 and 3 clips." }, { status: 400 });
   const prompt = typeof body?.prompt === "string" ? body.prompt.trim().slice(0, MAX_PROMPT_LENGTH) : "";
+  const aspectRatio = ASPECT_RATIOS.includes(body?.aspectRatio as typeof ASPECT_RATIOS[number]) ? body?.aspectRatio as string : "9:16";
+  const maxDurationSeconds = Number(body?.maxDurationSeconds ?? 60);
+  if (![15, 30, 45, 60].includes(maxDurationSeconds)) return NextResponse.json({ error: "Choose a clip length of 15, 30, 45 or 60 seconds." }, { status: 400 });
+  const resolution = body?.resolution === 1080 ? 1080 : 720;
+  const captionFont = CAPTION_FONTS.includes(body?.captionFont as typeof CAPTION_FONTS[number]) ? body?.captionFont as string : "BebasNeue";
+  const captionPosition = CAPTION_POSITIONS.includes(body?.captionPosition as typeof CAPTION_POSITIONS[number]) ? body?.captionPosition as string : "bottom";
+  const captionHighlightColor = typeof body?.captionHighlightColor === "string" && HEX_COLOR.test(body.captionHighlightColor) ? body.captionHighlightColor : "#7C5CFC";
 
   try {
     const workspaceId = await getWorkspaceId(db, user.id);
@@ -76,7 +91,7 @@ export async function POST(req: NextRequest) {
 
     const { data: job, error: insertError } = await db.from("generation_jobs").insert({
       workspace_id: workspaceId, requested_by: user.id, job_type: "clip_generation",
-      prompt: prompt || null, input: { provider: "reka", source_url: sourceUrl, num_generations: numGenerations },
+      prompt: prompt || null, input: { provider: "reka", source_url: sourceUrl, num_generations: numGenerations, aspect_ratio: aspectRatio, max_duration_seconds: maxDurationSeconds, resolution, caption_font: captionFont, caption_position: captionPosition, caption_highlight_color: captionHighlightColor },
       output: {}, status: "queued",
     }).select("id,status,input,output,error_message,created_at").single();
     if (insertError || !job) {
@@ -92,8 +107,8 @@ export async function POST(req: NextRequest) {
         body: JSON.stringify({
           video_urls: [sourceUrl],
           prompt: prompt || "Create engaging short videos highlighting the strongest self-contained moments.",
-          generation_config: { template: "moments", num_generations: numGenerations, min_duration_seconds: 15, max_duration_seconds: 60 },
-          rendering_config: { subtitles: true, aspect_ratio: "9:16", resolution: 720 },
+          generation_config: { template: "moments", num_generations: numGenerations, min_duration_seconds: 15, max_duration_seconds: maxDurationSeconds },
+          rendering_config: { subtitles: true, aspect_ratio: aspectRatio, resolution, caption_style: { desired_font_size: 120, text_transform: "uppercase", text_color: "#FFFFFF", highlight_color: captionHighlightColor, stroke_color: "#000000", position: captionPosition, font_family: captionFont } },
         }),
         signal: AbortSignal.timeout(25000),
         cache: "no-store",
@@ -112,7 +127,7 @@ export async function POST(req: NextRequest) {
     const nextStatus = providerData.status === "processing" ? "running" : "queued";
     const { data: updated, error: updateError } = await db.from("generation_jobs").update({
       status: nextStatus,
-      input: { provider: "reka", provider_job_id: providerData.id, source_url: sourceUrl, num_generations: numGenerations },
+      input: { provider: "reka", provider_job_id: providerData.id, source_url: sourceUrl, num_generations: numGenerations, aspect_ratio: aspectRatio, max_duration_seconds: maxDurationSeconds, resolution, caption_font: captionFont, caption_position: captionPosition, caption_highlight_color: captionHighlightColor },
       started_at: new Date().toISOString(),
     }).eq("id", job.id).eq("workspace_id", workspaceId).select("id,status,input,output,error_message,created_at").single();
     if (updateError || !updated) return NextResponse.json({ error: "The provider accepted the job, but Sorich could not save its tracking details. Contact support with the job ID." }, { status: 500 });

@@ -148,3 +148,16 @@ small{font-size:11px;color:var(--muted)}
 @media(max-width:800px){.sidebar{position:relative;width:100%;height:auto;padding:13px 16px;display:block}.sidebar .brand{padding:0 4px 12px}.side-label,.side-bottom{display:none}.side-nav{display:flex;overflow-x:auto;padding-bottom:3px}.side-nav a{flex:0 0 auto;padding:8px 10px}.main{margin-left:0}.topbar{height:58px;padding:0 18px}.content{padding:23px 16px}.grid-stats{grid-template-columns:repeat(2,1fr)}.hero{grid-template-columns:1fr;padding-top:45px}.preview{max-width:580px;width:100%;margin:0 auto}.auth{grid-template-columns:1fr;gap:28px;padding:35px 22px}.auth-copy .brand{margin-bottom:22px}.auth-copy h1{font-size:38px}.auth-card{max-width:560px;width:100%;margin:auto}.steps{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:600px){.container{width:calc(100% - 34px)}.nav{height:auto;min-height:68px}.links{gap:12px;font-size:11px}.links a:nth-child(1),.links a:nth-child(2){display:none}.links .btn{min-height:35px;padding:7px 10px}.hero{padding-top:35px;padding-bottom:45px}.hero h1{font-size:43px}.lead{font-size:14px}.feature-grid{grid-template-columns:1fr}.section{padding-top:40px;padding-bottom:40px}.steps{grid-template-columns:1fr 1fr}.cta{align-items:flex-start;flex-direction:column;padding:24px}.footer{flex-direction:column;gap:5px}.page-head{align-items:flex-start;flex-direction:column}.page-head h1{font-size:24px}.grid{grid-template-columns:1fr}.card.wide{grid-column:auto}.composer{grid-template-columns:1fr}.composer .wide{grid-column:1}.topbar{padding:0 14px}.content{padding:20px 12px}.card{padding:17px}.clip-form{grid-template-columns:1fr}.clip-form .field,.clip-form .field.wide,.clip-rights,.clip-submit{grid-column:1}.clip-heading{display:block}.clip-heading>.badge{display:inline-flex;margin-top:8px}.clip-results{grid-template-columns:1fr 1fr}.clip-video{max-height:320px}.clip-job-head{align-items:flex-start;flex-direction:column}.auth{padding:25px 16px}.auth-copy h1{font-size:34px}.auth-card{padding:24px 20px}}
 @media(max-width:390px){.clip-results{grid-template-columns:1fr}.grid-stats{gap:9px}.stat{padding:14px}.steps{grid-template-columns:1fr}}
+
+/* Clip studio: creator-grade controls and clear job feedback */
+.clip-options-heading{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:12px;padding-top:7px;border-top:1px solid var(--line)}
+.clip-options-heading .muted{font-size:11px}
+.clip-color-field .color-control{display:flex;align-items:center;gap:10px;min-height:43px;padding:5px 10px;border:1px solid var(--line);border-radius:10px;background:#fff}
+.clip-color-field input[type=color]{width:32px;height:30px;min-height:30px;padding:0;border:0;background:transparent;cursor:pointer}
+.clip-color-field span{font-size:11px;font-weight:750;letter-spacing:.08em;color:#555a70}
+.clip-form small{line-height:1.5}
+.clip-progress{padding:12px 14px;border:1px solid #e7e3ff;border-radius:11px;background:#f7f5ff;color:#5b4acb;font-size:12px}
+.clip-result-body{min-width:0}
+.clip-result-body p{overflow-wrap:anywhere}
+.clip-actions .btn{min-height:36px}
+@media(max-width:600px){.clip-options-heading{align-items:flex-start;flex-direction:column}.clip-color-field .color-control{width:100%}}
