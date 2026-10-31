@@ -6,6 +6,7 @@ import { signOut } from "@/app/auth/actions";
 import { createPost, deletePost } from "@/app/dashboard/actions";
 import { UploadForm } from "./upload-form";
 import { ConnectionsManager } from "./connections-manager";
+import { YouTubePublisher } from "./youtube-publisher";
 
 export const dynamic = "force-dynamic";
 
@@ -39,6 +40,7 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
         <a href="#library">▤ <span>Video library</span></a>
         <a href="#composer">✎ <span>Post composer</span></a>
         <a href="#calendar">▦ <span>Publishing plan</span></a>
+        <a href="#youtube-publisher">▶ <span>YouTube publisher</span></a>
       </nav>
       <div className="side-label">MANAGE</div>
       <nav className="side-nav"><a href="#connections">↗ <span>Connections</span></a><a href="#settings">⚙ <span>Settings</span></a></nav>
@@ -58,7 +60,8 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
             {assets.length ? assets.map((item) => <div className="row" key={item.id}><div><b>{item.original_filename || "Untitled video"}</b><small>{item.mime_type} · {item.size_bytes ? Math.round(item.size_bytes / 1048576) + " MB" : "—"} · {date(item.created_at)}</small></div><span className="badge green">{item.status}</span></div>) : <p className="notice">Your library is empty. Upload a video to begin.</p>}
           </section>
           <ConnectionsManager />
-          <section className="card wide" id="composer"><span className="eyebrow">PREPARE YOUR NEXT POST</span><h2>Post composer</h2><p className="muted">Save drafts and plan content. Publishing to YouTube is not available in this workspace yet.</p>
+          <YouTubePublisher />
+          <section className="card wide" id="composer"><span className="eyebrow">PREPARE YOUR NEXT POST</span><h2>Post composer</h2><p className="muted">Save drafts and plan content. Publishing requires an explicit review and approval in the YouTube publisher above.</p>
             <form action={createPost} className="composer"><div className="field wide"><label htmlFor="title">Post title</label><input id="title" name="title" maxLength={120} placeholder="A clear working title" /></div><div className="field wide"><label htmlFor="caption">Caption</label><textarea id="caption" name="caption" maxLength={5000} placeholder="Write your caption…" /></div><div className="field"><label htmlFor="hashtags">Hashtags</label><input id="hashtags" name="hashtags" placeholder="#creator #shorts" /></div><div className="field"><label htmlFor="planned_at">Planned date</label><input id="planned_at" name="planned_at" type="datetime-local" /></div><div className="wide"><button className="btn primary">Save draft</button></div></form>
           </section>
           <section className="card wide" id="calendar"><span className="eyebrow">CONTENT PIPELINE</span><h2>Publishing plan</h2><p className="muted">Saved drafts and intended dates. Nothing here is auto-published.</p><div style={{ overflowX: "auto" }}><table className="table"><thead><tr><th>POST</th><th>PLANNED FOR</th><th>STATUS</th><th>ACTION</th></tr></thead><tbody>{posts.length ? posts.map((item) => <tr key={item.id}><td>{item.title || "Untitled draft"}</td><td>{date(item.scheduled_at)}</td><td><span className="badge">{item.status}</span></td><td><form action={deletePost}><input type="hidden" name="id" value={item.id} /><button className="btn">Delete</button></form></td></tr>) : <tr><td colSpan={4}>No drafts yet.</td></tr>}</tbody></table></div></section>

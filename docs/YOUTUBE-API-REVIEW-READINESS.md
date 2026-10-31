@@ -1,53 +1,34 @@
-# Sorich Studio — YouTube API review readiness
+# YouTube API integration — operational notes
 
-Last reviewed: 2026-10-31
+## User-facing upload workflow
+- Upload a video file to the private Sorich Studio library first.
+- Select an authorized YouTube channel, choose the library file, review title, description, tags, visibility and the made-for-kids declaration.
+- Confirm content rights and acceptance of the YouTube and Sorich Studio terms.
+- The server creates a resumable YouTube upload session and transfers the stored file. OAuth tokens stay server-side.
+- The server stores the YouTube video ID and upload result in the workspace publishing_posts record.
+- The user can request the current upload/processing status with videos.list.
 
-## Current implementation verified in the repository
+## API methods actually used
+- channels.list: channel identity lookup after OAuth.
+- videos.insert: upload using resumable upload protocol.
+- videos.list: retrieve upload and processing status for videos uploaded through this workspace.
+- OAuth token endpoint and Google userinfo are identity/authentication endpoints, not YouTube Data API methods.
 
-- Private video-library upload to Supabase Storage (up to 100 MB in the UI).
-- Workspace content drafts (title, caption, hashtags, planned date).
-- A provider-account connection framework with a YouTube OAuth authorization-code flow, state validation, PKCE, token encryption, channel identification, refresh, and disconnect/revocation logic.
-- The YouTube OAuth flow requests openid, email, profile, youtube.readonly, and youtube.upload.
-- The YouTube channel lookup calls channels.list with mine=true.
+## Limits and safety
+- The app's private media library currently limits source files to 100 MB.
+- Only connected YouTube accounts with the youtube.upload scope can publish.
+- Publishing requires an explicit user action, a rights confirmation, YouTube/Sorich terms acceptance, visibility selection, and made-for-kids declaration.
+- Public, unlisted, and private visibility are supported. Uploads are never scheduled or auto-published by this workflow.
+- Category is currently set to People & Blogs (22); update the selector and server validation if other categories are needed.
+- Uploads are performed in a single server request after starting a resumable session. This is not yet a chunk-resume UI for interrupted uploads. Large transfers may time out depending on hosting limits.
+- Shorts classification is determined by YouTube's current eligibility rules; this app does not guarantee Shorts classification.
 
-## Not implemented / not verified
+## Deployment configuration still required
+- Production GOOGLE_CLIENT_SECRET must be added securely in Vercel. Do not put it in GitHub or browser code.
+- Production OAUTH_REDIRECT_BASE_URL and NEXT_PUBLIC_SITE_URL must point to the canonical production origin.
+- Register the exact production callback URL with Google: https://YOUR-PRODUCTION-DOMAIN/api/oauth/youtube/callback
+- Confirm the OAuth consent screen, authorized domains, support/developer contact, privacy policy and requested scopes.
+- The adult account owner responsible for the Google Cloud project must manage Google consent, quota submissions and any reviewer access. Never share account passwords with reviewers; use the official OAuth test flow and least-privilege access.
 
-- There is no production YouTube video upload endpoint using videos.insert.
-- The current private-library upload is not a YouTube upload.
-- There is no implemented videos.list upload-status screen.
-- There is no user-facing YouTube search feature that justifies search.list.
-- No real consent-screen, scopes, revocation, or YouTube-upload screenshots have been captured from an end-to-end production test.
-- The automated long-video clipping / Reka feature has been removed from the current application while the user prepares the YouTube API review. It can be reintroduced later from version control if requested.
-
-## Vercel environment configuration observed (names/targets only)
-
-- GOOGLE_CLIENT_ID: Production, Preview, Development.
-- GOOGLE_CLIENT_SECRET: Preview only; not configured for Production.
-- OAUTH_REDIRECT_BASE_URL: Preview only.
-- OAUTH_TOKEN_ENCRYPTION_KEY: Production and Preview.
-- SUPABASE_SERVICE_ROLE_KEY: Production and Preview.
-- NEXT_PUBLIC_SITE_URL: Preview and Development; not configured for Production.
-
-Do not expose secret values in logs, screenshots, support requests, or this document.
-
-## Required before claiming a production YouTube integration
-
-1. Configure the Google OAuth client ID and client secret for the intended Vercel environment.
-2. Set the canonical production site URL and OAuth redirect base URL to the production domain.
-3. Register the exact callback URL with the Google OAuth client: https://YOUR-PRODUCTION-DOMAIN/api/oauth/youtube/callback.
-4. Confirm the consent screen's app name, support email, developer contact, authorized domains, privacy policy, terms, and requested scopes.
-5. Implement and test videos.insert using the connected user's authorization, with an explicit final review and upload action.
-6. Implement and test upload status retrieval (videos.list) and a clear connected-channel display.
-7. Capture genuine screenshots of the consent flow, granted scopes, connected account, disconnect/revocation, upload form, final approval, and successful upload.
-8. Submit only quota amounts and API methods that match implemented features and defensible expected usage.
-
-## Quota-method alignment
-
-- channels.list: currently used by the YouTube connection flow.
-- videos.insert: planned; not yet implemented in production.
-- videos.list: planned; not yet implemented for upload-status checks.
-- videos.update: not currently implemented.
-- thumbnails.set: not currently implemented.
-- search.list: no user-facing search feature currently exists; do not claim usage until implemented.
-
-This file is an engineering checklist, not a guarantee of Google approval or legal advice.
+## Audit evidence
+Google requires an actual end-to-end demonstration for video upload use cases, not only screenshots of static controls. Capture a real authorized connection, user review, upload action, successful YouTube video page, and status check after deployment. Do not fabricate or stage success evidence.
