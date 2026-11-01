@@ -14,7 +14,7 @@ export async function middleware(req: NextRequest) {
     "object-src 'none'",
     "base-uri 'self'",
     "form-action 'self'",
-    "frame-ancestors 'none'",
+    "frame-ancestors 'self' https://admin.shopify.com https://*.myshopify.com",
     "upgrade-insecure-requests",
   ].join("; ");
 
@@ -28,7 +28,6 @@ export async function middleware(req: NextRequest) {
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
-
   if (supabaseUrl && supabaseKey) {
     const supabase = createServerClient(supabaseUrl, supabaseKey, {
       cookies: {
@@ -48,7 +47,9 @@ export async function middleware(req: NextRequest) {
       },
     });
 
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
     if (req.nextUrl.pathname.startsWith("/dashboard") && !user) {
       const target = req.nextUrl.clone();
@@ -65,6 +66,7 @@ export async function middleware(req: NextRequest) {
       ? "private, no-store"
       : "public, max-age=0, must-revalidate",
   );
+
   return response;
 }
 
